@@ -72,6 +72,7 @@ var HTML_COMMS = RegExp(/<!--(?!>)[\S\s]*?-->/.source + '|' + S_LINESTR, 'g')
  * @const {RegExp}
  */
 var HTML_TAGS = /<(-?[A-Za-z][-\w\xA0-\xFF]*)(?:\s+([^"'/>]*(?:(?:"[^"]*"|'[^']*'|\/[^>])[^'"/>]*)*)|\s*)(\/?)>/g
+var HTML_CLOSE_TAGS = /<\/(-?[A-Za-z][-\w\xA0-\xFF]*)\s*>/g
 
 /**
  * Matches spaces and tabs between HTML tags
@@ -178,6 +179,10 @@ function parseAttribs (str, pcex) {
     match,
     type, vexp
 
+  if (str == null) {
+    return []
+  }
+
   HTML_ATTRS.lastIndex = 0
 
   str = str.replace(/\s+/g, ' ')
@@ -188,7 +193,7 @@ function parseAttribs (str, pcex) {
       v = match[2]
 
     if (!v) {
-      list.push(k)                // boolean attribute without explicit value
+      list.push([k])                // boolean attribute without explicit value
     } else {
       // attribute values must be enclosed in double quotes
       if (v[0] !== DQ) {
@@ -204,16 +209,16 @@ function parseAttribs (str, pcex) {
           if (RIOT_ATTRS.indexOf(k) !== -1) k = 'riot-' + k
         }
         // join the key-value pair, with no spaces between the parts
-        list.push(k + '=' + v)
+        list.push([k, v])
       }
     }
   }
   // update() will evaluate `type` after the value, avoiding warnings
   if (type) {
     if (vexp) type = DQ + pcex._bp[0] + SQ + type.slice(1, -1) + SQ + pcex._bp[1] + DQ
-    list.push('type=' + type)
+    list.push(['type', type])
   }
-  return list.join(' ')     // returns the attribute list
+  return list     // returns the attribute list
 }
 
 /**
@@ -237,6 +242,7 @@ function splitHtml (html, opts, pcex) {
       list = brackets.split(html, 0, _bp),
       expr
 
+    console.log(list)
     for (var i = 1; i < list.length; i += 2) {
       expr = list[i]
       if (expr[0] === '^') {
@@ -296,9 +302,26 @@ function _compileHTML (html, opts, pcex) {
       // close self-closing tag, except if this is a html5 void tag
       ends = ends && !VOID_TAGS.test(name) ? '></' + name : ''
       // format the attributes
-      if (attr) name += ' ' + parseAttribs(attr, pcex)
+      attr = parseAttribs(attr, pcex)
+      console.log(name)
+      console.log(attr)
+      attr.forEach((a) => {
+        if (a.length > 1 && a[1].codePointAt(1) === 1) {
+          // console.log(a)
+        }
+      })
+      attr.forEach((a) => {
+        let m
+        if (a[0].startsWith('on') && a[1] != null && (m = a[1].match(safeRegex(/^"@#(\d+)}"/, 'x01'))) != null) {
+          a[1] = `"${pcex[m[1]]}"`
+        }
+      })
+      if (attr.length > 0) name += ' ' + attr.map((x) => x.length === 1 ? x[0] : `${x[0]}=${x[1]}`).join(' ')
 
       return '<' + name + ends + '>'
+    })
+    .replace(HTML_CLOSE_TAGS, function(_, name) {
+      return '</' + name + '>'
     })
 
   // tags parsed, now compact whitespace if `opts.whitespace` is not set

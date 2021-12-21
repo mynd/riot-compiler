@@ -288,6 +288,7 @@ var compile = (function () {
   var HTML_COMMS = RegExp(/<!--(?!>)[\S\s]*?-->/.source + '|' + S_LINESTR, 'g')
 
   var HTML_TAGS = /<(-?[A-Za-z][-\w\xA0-\xFF]*)(?:\s+([^"'/>]*(?:(?:"[^"]*"|'[^']*'|\/[^>])[^'"/>]*)*)|\s*)(\/?)>/g
+  var HTML_CLOSE_TAGS = /<\/(-?[A-Za-z][-\w\xA0-\xFF]*)\s*>/g
 
   var HTML_PACK = />[ \t]+<(-?[A-Za-z]|\/[-A-Za-z])/g
 
@@ -336,6 +337,10 @@ var compile = (function () {
       match,
       type, vexp
 
+    if (str == null) {
+      return []
+    }
+
     HTML_ATTRS.lastIndex = 0
 
     str = str.replace(/\s+/g, ' ')
@@ -346,7 +351,7 @@ var compile = (function () {
         v = match[2]
 
       if (!v) {
-        list.push(k)
+        list.push([k])
       } else {
 
         if (v[0] !== DQ) {
@@ -362,16 +367,16 @@ var compile = (function () {
             if (RIOT_ATTRS.indexOf(k) !== -1) k = 'riot-' + k
           }
 
-          list.push(k + '=' + v)
+          list.push([k, v])
         }
       }
     }
 
     if (type) {
       if (vexp) type = DQ + pcex._bp[0] + SQ + type.slice(1, -1) + SQ + pcex._bp[1] + DQ
-      list.push('type=' + type)
+      list.push(['type', type])
     }
-    return list.join(' ')
+    return list
   }
 
   function splitHtml (html, opts, pcex) {
@@ -383,6 +388,7 @@ var compile = (function () {
         list = brackets.split(html, 0, _bp),
         expr
 
+      console.log(list)
       for (var i = 1; i < list.length; i += 2) {
         expr = list[i]
         if (expr[0] === '^') {
@@ -418,9 +424,26 @@ var compile = (function () {
 
         ends = ends && !VOID_TAGS.test(name) ? '></' + name : ''
 
-        if (attr) name += ' ' + parseAttribs(attr, pcex)
+        attr = parseAttribs(attr, pcex)
+        console.log(name)
+        console.log(attr)
+        attr.forEach((a) => {
+          if (a.length > 1 && a[1].codePointAt(1) === 1) {
+
+          }
+        })
+        attr.forEach((a) => {
+          let m
+          if (a[0].startsWith('on') && a[1] != null && (m = a[1].match(safeRegex(/^"@#(\d+)}"/, 'x01'))) != null) {
+            a[1] = `"${pcex[m[1]]}"`
+          }
+        })
+        if (attr.length > 0) name += ' ' + attr.map((x) => x.length === 1 ? x[0] : `${x[0]}=${x[1]}`).join(' ')
 
         return '<' + name + ends + '>'
+      })
+      .replace(HTML_CLOSE_TAGS, function(_, name) {
+        return '</' + name + '>'
       })
 
     if (!opts.whitespace) {
