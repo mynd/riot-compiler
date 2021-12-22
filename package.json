@@ -3,25 +3,13 @@
   "version": "3.6.0",
   "description": "Compiler for riot .tag files",
   "main": "lib/compiler.js",
-  "module": "dist/es6.compiler.js",
-  "jsnext:main": "dist/es6.compiler.js",
   "directories": {
-    "lib": "lib",
-    "doc": "doc"
+    "lib": "lib"
   },
   "files": [
-    "lib",
-    "doc",
-    "dist/*.js"
+    "lib"
   ],
-  "scripts": {
-    "test": "make test",
-    "prepare": "npm run install-html && npm run install-js && npm run install-css",
-    "install-html": "npm i --no-save jade pug",
-    "install-js": "npm i --no-save babel-core babel-preset-es2015-riot buble coffee-script livescript typescript-simple",
-    "install-css": "npm i --no-save stylus nib node-sass less postcss autoprefixer",
-    "prepublishOnly": "make build && riot-bump && riot-bump lib"
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/riot/compiler.git"
@@ -32,19 +20,6 @@
     "tag",
     "compiler"
   ],
-  "peerDependency": {
-    "riot-tmpl": "*"
-  },
-  "devDependencies": {
-    "coveralls": "^3.0.0",
-    "eslint": "^4.19.1",
-    "eslint-config-riot": "^1.0.0",
-    "expect.js": "^0.3.1",
-    "istanbul": "^0.4.5",
-    "jspreproc": "^0.2.7",
-    "mocha": "^5.0.5",
-    "riot-bump": "^1.0.0"
-  },
   "author": "Riot maintainers team + smart people from all over the world",
   "contributors": [
     "Richard Bondi https://github.com/rsbondi",
@@ -59,8 +34,11 @@
   },
   "homepage": "https://github.com/riot/compiler#readme",
   "dependencies": {
-    "skip-regex": "^0.3.1",
-    "source-map": "^0.7.2",
-    "string-similarity": "^1.2.0"
+    "skip-regex": "^1.0.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.5.0",
+    "eslint-config-prettier": "^8.3.0",
+    "prettier": "^2.5.1"
   }
 }
