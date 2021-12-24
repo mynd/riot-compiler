@@ -1,6 +1,6 @@
 {
   "name": "riot-compiler",
-  "version": "3.6.0",
+  "version": "3.7.0+bpclassic",
   "description": "Compiler for riot .tag files",
   "main": "lib/compiler.js",
   "directories": {
